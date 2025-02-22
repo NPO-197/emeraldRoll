@@ -1,0 +1,33 @@
+// include standard library for useful constants
+.stdlib
+
+.def SECTOR_DATA_SIZE = 3968
+
+
+// first 40 bytes are NOP to slide into payload 
+// since where we initally jump into BOX12 data is somewhat random
+.u8fill 0x40
+
+//Swap from thumb mode into arm
+.thumb
+.align 4, nop
+    bx pc
+    nop
+
+.arm
+    //Copy Payload into EWRAM
+    ldr r10,=(0x0E000000+(20*0x1000))
+    ldr r9,=0x02028000
+    ldr r2,=SECTOR_DATA_SIZE
+    ldr r3,=0x1000
+    mov r1,#0
+-   ldrb r0,[r10,r1]
+    strb r0,[ r9,r1]
+    add r1,#1
+    cmp r1,r2
+    blt -
+    add r10,r3
+    //Jump to Payload
+    ldr r0,=0x02028000
+    bx r0
+.pool
